@@ -89,11 +89,11 @@ final public class NettyCodecAdapter {
                     int saveReaderIndex = message.readerIndex();
                     Object msg = codec.decode(channel, message);
                     if (msg == Codec2.DecodeResult.NEED_MORE_INPUT) {
-                        message.readerIndex(saveReaderIndex);
+                        message.readerIndex(saveReaderIndex); // 数据不够读，重新设置开始读的位置
                         break;
                     } else {
                         //is it possible to go here ?
-                        if (saveReaderIndex == message.readerIndex()) {
+                        if (saveReaderIndex == message.readerIndex()) { // decode没有可读的数据
                             throw new IOException("Decode without read data.");
                         }
                         if (msg != null) {

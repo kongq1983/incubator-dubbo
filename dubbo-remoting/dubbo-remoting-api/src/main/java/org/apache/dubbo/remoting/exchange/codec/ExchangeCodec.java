@@ -86,23 +86,23 @@ public class ExchangeCodec extends TelnetCodec {
     protected Object decode(Channel channel, ChannelBuffer buffer, int readable, byte[] header) throws IOException {
         // check magic number.
         if (readable > 0 && header[0] != MAGIC_HIGH
-                || readable > 1 && header[1] != MAGIC_LOW) {
+                || readable > 1 && header[1] != MAGIC_LOW) { // 非魔幻数据开头
             int length = header.length;
             if (header.length < readable) {
-                header = Bytes.copyOf(header, readable);
-                buffer.readBytes(header, length, readable - length);
+                header = Bytes.copyOf(header, readable); // 重新创建1个数组，length=readable，并把header的值，拷贝到新的数组，并返回
+                buffer.readBytes(header, length, readable - length); // 填充新的数组，剩余的几个位置（readable - length）
             }
             for (int i = 1; i < header.length - 1; i++) {
-                if (header[i] == MAGIC_HIGH && header[i + 1] == MAGIC_LOW) {
-                    buffer.readerIndex(buffer.readerIndex() - header.length + i);
-                    header = Bytes.copyOf(header, i);
+                if (header[i] == MAGIC_HIGH && header[i + 1] == MAGIC_LOW) { // 数据纠错，找到魔幻数据开头位置
+                    buffer.readerIndex(buffer.readerIndex() - header.length + i); // 设置新的可读位置
+                    header = Bytes.copyOf(header, i); // 新的header数组
                     break;
                 }
             }
             return super.decode(channel, buffer, readable, header);
         }
         // check length.
-        if (readable < HEADER_LENGTH) {
+        if (readable < HEADER_LENGTH) { // 消息长度不够
             return DecodeResult.NEED_MORE_INPUT;
         }
 
